@@ -1,5 +1,5 @@
 import React from "react";
-import { BOOKMAKERS, CATEGORIES, FAQS, NAV_LINKS } from "./data";
+import { BOOKMAKERS, FAQS, NAV_LINKS } from "./data";
 import { Icon, Mono, Stars } from "./icons";
 
 const MobileContext = React.createContext(false);
@@ -264,116 +264,6 @@ const Reviews = () => (
   </section>
 );
 
-const Categories = () => (
-  <section className="ls-section" id="categories">
-    <div className="ls-wrap">
-      <div className="ls-section-head">
-        <span className="ls-eyebrow">By category</span>
-        <h2 className="ls-h2">Best Betting Sites by Category</h2>
-        <p className="ls-section-sub">Different bettors have different priorities. Pick the angle that matters most to you.</p>
-      </div>
-      <div className="ls-cat-grid">
-        {CATEGORIES.map((c) => (
-          <div key={c.title} className="ls-cat-card">
-            <h3>{c.title}</h3>
-            <p>{c.desc}</p>
-            <div className="ls-cat-picks">
-              {c.picks.map((id) => {
-                const bm = BOOKMAKERS.find((b) => b.id === id);
-                return bm ? <Mono key={id} bm={bm} size="sm" /> : null;
-              })}
-              <span className="ls-cat-picks-text">
-                {c.picks.map((id) => BOOKMAKERS.find((b) => b.id === id)?.name).join(" · ")}
-              </span>
-            </div>
-            <a href={`#review-${c.picks[0]}`} className="ls-cat-link">View details {Icon.arrowRight()}</a>
-          </div>
-        ))}
-      </div>
-    </div>
-  </section>
-);
-
-const SafeSteps = [
-  { n: "01", t: "Licence & regulation", d: "Confirm a UK Gambling Commission licence and check the public register." },
-  { n: "02", t: "Secure payments", d: "Look for trusted methods, SSL throughout and identity verification on signup." },
-  { n: "03", t: "Transparent terms", d: "Bonus, withdrawal and account-closure policies should be easy to find." },
-  { n: "04", t: "Reputation & support", d: "Read independent reviews and test customer support before depositing real money." },
-];
-
-const BonusConcepts = [
-  { t: "Qualifying bet", d: "The first bet you place to unlock the offer.", icon: Icon.check(16) },
-  { t: "Minimum odds", d: "The shortest price your qualifying bet can be at.", icon: Icon.bolt(16) },
-  { t: "Wagering / rollover", d: "How many times you must stake the bonus before withdrawing.", icon: Icon.clock(16) },
-  { t: "Expiry times", d: "Free bets typically expire 7 days after they are credited.", icon: Icon.clock(16) },
-  { t: "Stake not returned", d: "Free bet winnings exclude the original free-bet stake.", icon: Icon.card(16) },
-];
-
-const RGTips = [
-  { t: "Set a budget", d: "Decide a monthly limit before you bet, and never increase it on a losing day." },
-  { t: "Avoid chasing losses", d: "Bigger stakes do not recover earlier ones. A losing run is a stop signal." },
-  { t: "Use deposit limits", d: "Every UKGC site lets you cap deposits per day, week or month — set them up early." },
-  { t: "Take regular breaks", d: "Use time-out and reality-check tools, especially during long live-betting sessions." },
-];
-
-const Guides = () => (
-  <section className="ls-section" id="bonus-guide">
-    <div className="ls-wrap">
-      <div className="ls-section-head">
-        <span className="ls-eyebrow">Guides</span>
-        <h2 className="ls-h2">The Essentials, in Plain English</h2>
-        <p className="ls-section-sub">Three short reads that cover the things every UK bettor should know before placing a bet.</p>
-      </div>
-
-      <div className="ls-guide-block">
-        <h3>How to choose a safe online bookmaker</h3>
-        <p className="ls-guide-intro">A four-point checklist we use ourselves before adding any new operator to the comparison table.</p>
-        <div className="ls-step-grid">
-          {SafeSteps.map((s) => (
-            <div key={s.n} className="ls-step">
-              <span className="ls-step-num">{s.n}</span>
-              <h4>{s.t}</h4>
-              <p>{s.d}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="ls-guide-block">
-        <h3>How welcome bonuses & free bets work</h3>
-        <p className="ls-guide-intro">Five concepts that explain almost every bookmaker offer you will see in the UK.</p>
-        <div className="ls-bonus-grid">
-          {BonusConcepts.map((b) => (
-            <div key={b.t} className="ls-bonus-card">
-              <span className="ls-bonus-icon">{b.icon}</span>
-              <h4>{b.t}</h4>
-              <p>{b.d}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="ls-guide-block">
-        <h3>Bankroll management & responsible gambling</h3>
-        <p className="ls-guide-intro">Four habits that keep betting fun and well-controlled.</p>
-        <div className="ls-step-grid">
-          {RGTips.map((t, i) => (
-            <div key={t.t} className="ls-step">
-              <span className="ls-step-num">{String(i + 1).padStart(2, "0")}</span>
-              <h4>{t.t}</h4>
-              <p>{t.d}</p>
-            </div>
-          ))}
-        </div>
-        <div className="ls-rg-cta">
-          {Icon.heart(14)}
-          <span>If gambling stops being fun, free help is available 24/7. Visit <a href="#help">BeGambleAware</a> or call the National Gambling Helpline on 0808 8020 133.</span>
-        </div>
-      </div>
-    </div>
-  </section>
-);
-
 const FAQ = () => {
   const [openIdx, setOpenIdx] = React.useState(0);
   return (
@@ -486,8 +376,6 @@ export default function App() {
         <Nav />
         <Comparison />
         <Reviews />
-        <Categories />
-        <Guides />
         <FAQ />
         <Footer />
         {showSticky && !mobile && (
