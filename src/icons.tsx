@@ -117,4 +117,9 @@ export const Icon = {
       <path d="M12 2 L14.5 6.5 L19.5 7.5 L16 11 L17 16 L12 13.5 L7 16 L8 11 L4.5 7.5 L9.5 6.5 Z" />
     </svg>
   ),
+  star: (s = 14) => (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2 L14.5 8.5 L21 9.3 L16 13.8 L17.5 20.5 L12 17.3 L6.5 20.5 L8 13.8 L3 9.3 L9.5 8.5 Z" />
+    </svg>
+  ),
 };

@@ -133,7 +133,7 @@
   letter-spacing: -0.02em; color: var(--color-text);
 }
 .ls-logo-svg { flex-shrink: 0; }
-.ls-nav-links { display: flex; align-items: center; gap: var(--space-1); }
+.ls-nav-links { display: flex; align-items: center; gap: var(--space-1); position: relative; }
 .ls-nav-item {
   padding: var(--space-2) var(--space-3); font-size: var(--text-sm); font-weight: 500;
   color: #cccccc; border-radius: var(--radius-md);
@@ -142,9 +142,11 @@
 }
 .ls-nav-item:hover { color: #fff; background: var(--color-surface-hover); }
 .ls-nav-item.active { color: #fff; font-weight: 600; }
-.ls-nav-item.active::after {
-  content: ''; position: absolute; bottom: -2px; left: 50%; transform: translateX(-50%);
-  width: 70%; height: 2px; background: var(--color-primary); border-radius: var(--radius-full);
+.ls-nav-underline {
+  position: absolute; bottom: -2px; height: 2px;
+  background: var(--color-primary); border-radius: var(--radius-full);
+  transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
 }
 .ls-hamburger {
   width: 36px; height: 36px; border-radius: var(--radius-md);

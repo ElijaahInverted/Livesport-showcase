@@ -1,21 +1,111 @@
 import React from "react";
-import { BOOKMAKERS, FAQS, NAV_LINKS } from "./data";
+import { BOOKMAKERS, CATEGORIES, FAQS, NAV_LINKS } from "./data";
 import { Icon, Mono, Stars } from "./icons";
 
 const MobileContext = React.createContext(false);
+const ScrollRefContext = React.createContext<React.RefObject<HTMLDivElement | null> | null>(null);
 
 const Nav = () => {
   const [open, setOpen] = React.useState(false);
+  const [activeIdx, setActiveIdx] = React.useState(0);
   const mobile = React.useContext(MobileContext);
+  const scrollRef = React.useContext(ScrollRefContext);
+  const navLinksRef = React.useRef<HTMLElement>(null);
+  const [underline, setUnderline] = React.useState({ left: 0, width: 0 });
+
+  // Measure underline position based on active nav item
+  React.useEffect(() => {
+    if (!navLinksRef.current || mobile) return;
+    const items = navLinksRef.current.querySelectorAll<HTMLAnchorElement>(".ls-nav-item");
+    const activeItem = items[activeIdx];
+    if (activeItem) {
+      const parentRect = navLinksRef.current.getBoundingClientRect();
+      const itemRect = activeItem.getBoundingClientRect();
+      setUnderline({
+        left: itemRect.left - parentRect.left + itemRect.width * 0.15,
+        width: itemRect.width * 0.7,
+      });
+    }
+  }, [activeIdx, mobile]);
+
+  // Update active nav item based on scroll position (intersection observer)
+  React.useEffect(() => {
+    const container = scrollRef?.current;
+    if (!container) return;
+
+    const sectionIds = NAV_LINKS.map((l) => l.href.replace("#", ""));
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+      const containerHeight = container.clientHeight;
+
+      // Find which section is most visible
+      let bestIdx = 0;
+      let bestDistance = Infinity;
+
+      for (let i = 0; i < sectionIds.length; i++) {
+        const el = document.getElementById(sectionIds[i]);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const relativeTop = rect.top - containerRect.top;
+        const distance = Math.abs(relativeTop);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIdx = i;
+        }
+      }
+      setActiveIdx(bestIdx);
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [scrollRef]);
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, idx: number) => {
+    e.preventDefault();
+    setActiveIdx(idx);
+    const targetId = NAV_LINKS[idx].href.replace("#", "");
+    const container = scrollRef?.current;
+    const targetEl = document.getElementById(targetId);
+    if (container && targetEl) {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = targetEl.getBoundingClientRect();
+      const scrollTop = container.scrollTop + targetRect.top - containerRect.top - 60;
+      container.scrollTo({ top: scrollTop, behavior: "smooth" });
+    }
+    if (mobile) setOpen(false);
+  };
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const container = scrollRef?.current;
+    if (container) {
+      container.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    setActiveIdx(0);
+  };
+
+  const handleShowTop3 = () => {
+    const container = scrollRef?.current;
+    const targetEl = document.getElementById("top10");
+    if (container && targetEl) {
+      const containerRect = container.getBoundingClientRect();
+      const targetRect = targetEl.getBoundingClientRect();
+      const scrollTop = container.scrollTop + targetRect.top - containerRect.top - 60;
+      container.scrollTo({ top: scrollTop, behavior: "smooth" });
+    }
+  };
+
   return (
     <header className="ls-nav">
       <div className="ls-wrap ls-nav-inner">
-        <a href="#top" className="ls-logo">
+        <a href="#top" className="ls-logo" onClick={handleLogoClick}>
           <svg className="ls-logo-svg" width="26" height="26" viewBox="0 0 28 28" fill="none" aria-label="Livesport">
-            <rect width="28" height="28" rx="6" fill="#e03030"/>
-            <path d="M8 8 L8 20 L14 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <circle cx="20" cy="14" r="4" stroke="white" strokeWidth="2" fill="none"/>
-            <line x1="23" y1="17" x2="25" y2="19" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+            <rect width="28" height="28" rx="6" fill="#e03030" />
+            <path d="M8 8 L8 20 L14 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            <circle cx="20" cy="14" r="4" stroke="white" strokeWidth="2" fill="none" />
+            <line x1="23" y1="17" x2="25" y2="19" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
           </svg>
           <span>LIVESPORT</span>
         </a>
@@ -25,19 +115,33 @@ const Nav = () => {
           </button>
         ) : (
           <>
-            <nav className="ls-nav-links">
+            <nav className="ls-nav-links" ref={navLinksRef}>
               {NAV_LINKS.map((l, i) => (
-                <a key={l.href} href={l.href} className={"ls-nav-item" + (i === 0 ? " active" : "")}>{l.label}</a>
+                <a
+                  key={l.href}
+                  href={l.href}
+                  className={"ls-nav-item" + (i === activeIdx ? " active" : "")}
+                  onClick={(e) => handleNavClick(e, i)}
+                >
+                  {l.label}
+                </a>
               ))}
+              <div
+                className="ls-nav-underline"
+                style={{
+                  left: underline.left,
+                  width: underline.width,
+                }}
+              />
             </nav>
-            <button className="ls-btn ls-btn-primary">Show Top 3</button>
+            <button className="ls-btn ls-btn-primary" onClick={handleShowTop3}>Show Top 3</button>
           </>
         )}
       </div>
       {mobile && open && (
         <div style={{ borderTop: "1px solid var(--color-border)", padding: "12px 16px", display: "flex", flexDirection: "column", gap: 4, background: "var(--color-bg)" }}>
-          {NAV_LINKS.map((l) => (
-            <a key={l.href} href={l.href} onClick={() => setOpen(false)} style={{ padding: "10px 8px", color: "var(--color-text)", fontSize: 14 }}>
+          {NAV_LINKS.map((l, i) => (
+            <a key={l.href} href={l.href} onClick={(e) => handleNavClick(e, i)} style={{ padding: "10px 8px", color: activeIdx === i ? "var(--color-primary-bright)" : "var(--color-text)", fontSize: 14, fontWeight: activeIdx === i ? 700 : 400 }}>
               {l.label}
             </a>
           ))}
@@ -264,6 +368,110 @@ const Reviews = () => (
   </section>
 );
 
+const BestByCategory = () => {
+  const mobile = React.useContext(MobileContext);
+  return (
+    <section className="ls-section" id="categories">
+      <div className="ls-wrap">
+        <div className="ls-section-head">
+          <span className="ls-eyebrow">Categories</span>
+          <h2 className="ls-h2">Best by Category</h2>
+          <p className="ls-section-sub">
+            Not every bettor wants the same thing. Browse our picks for the top operators across five key categories.
+          </p>
+        </div>
+        <div className="ls-cat-grid">
+          {CATEGORIES.map((cat) => {
+            const picks = cat.picks.map((id) => BOOKMAKERS.find((bm) => bm.id === id)!).filter(Boolean);
+            return (
+              <div key={cat.title} className="ls-cat-card">
+                <h3>{cat.title}</h3>
+                <p>{cat.desc}</p>
+                <div className="ls-cat-picks">
+                  {picks.map((bm) => (
+                    <Mono key={bm.id} bm={bm} size="sm" />
+                  ))}
+                  <span className="ls-cat-picks-text">
+                    {picks.map((bm) => bm.name).join(", ")}
+                  </span>
+                </div>
+                <a href={`#review-${picks[0]?.id}`} className="ls-cat-link">
+                  See top pick {Icon.arrowRight()}
+                </a>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const BONUS_STEPS = [
+  { title: "Choose a bookmaker", desc: "Compare welcome offers, minimum deposits and wagering terms in our comparison table above." },
+  { title: "Create your account", desc: "Sign up through the bookmaker's site, verify your identity and set deposit limits before you start." },
+  { title: "Make your qualifying bet", desc: "Place the minimum qualifying bet as stated in the offer terms. Most require a single bet at minimum odds." },
+  { title: "Receive your free bet", desc: "Free bets are usually credited within minutes. Check your account balance and the expiry date." },
+];
+
+const BONUS_TYPES = [
+  { title: "Free Bets", desc: "Credited after a qualifying bet. Winnings paid as cash minus the stake." },
+  { title: "Deposit Match", desc: "The bookmaker matches a percentage of your first deposit as bonus funds." },
+  { title: "Enhanced Odds", desc: "Boosted prices on specific events for new customers, often on football." },
+  { title: "No-Deposit Bonus", desc: "Rare offers that give you a free bet without needing to deposit first." },
+  { title: "Acca Insurance", desc: "If one leg of your accumulator lets you down, you get your stake back as a free bet." },
+];
+
+const BonusGuide = () => {
+  const mobile = React.useContext(MobileContext);
+  return (
+    <section className="ls-section" id="bonus-guide">
+      <div className="ls-wrap">
+        <div className="ls-section-head">
+          <span className="ls-eyebrow">Bonus guide</span>
+          <h2 className="ls-h2">How Betting Bonuses Work</h2>
+          <p className="ls-section-sub">
+            New to free bets and welcome offers? This guide breaks down the most common bonus types and how to claim them responsibly.
+          </p>
+        </div>
+
+        <div className="ls-guide-block">
+          <h3>How to claim a welcome bonus</h3>
+          <p className="ls-guide-intro">Most bookmaker bonuses follow the same four-step process. Here's what to expect.</p>
+          <div className="ls-step-grid">
+            {BONUS_STEPS.map((step, i) => (
+              <div key={i} className="ls-step">
+                <span className="ls-step-num">0{i + 1}</span>
+                <h4>{step.title}</h4>
+                <p>{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="ls-guide-block">
+          <h3>Common bonus types</h3>
+          <p className="ls-guide-intro">Understanding the different bonus formats helps you choose the right offer for your style of betting.</p>
+          <div className="ls-bonus-grid">
+            {BONUS_TYPES.map((bt) => (
+              <div key={bt.title} className="ls-bonus-card">
+                <div className="ls-bonus-icon">{Icon.star(14)}</div>
+                <h4>{bt.title}</h4>
+                <p>{bt.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="ls-rg-cta">
+          <span className="ls-age-badge"><span className="ls-age-circle">18+</span> Only</span>
+          <span>Gambling can be addictive. Please play responsibly. If you need help, contact <a href="https://www.begambleaware.org" target="_blank" rel="noopener noreferrer">BeGambleAware</a>.</span>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const FAQ = () => {
   const [openIdx, setOpenIdx] = React.useState(0);
   return (
@@ -297,10 +505,10 @@ const Footer = () => (
         <div className="ls-footer-col">
           <a href="#top" className="ls-logo" style={{ marginBottom: 14 }}>
             <svg className="ls-logo-svg" width="26" height="26" viewBox="0 0 28 28" fill="none" aria-label="Livesport">
-              <rect width="28" height="28" rx="6" fill="#e03030"/>
-              <path d="M8 8 L8 20 L14 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <circle cx="20" cy="14" r="4" stroke="white" strokeWidth="2" fill="none"/>
-              <line x1="23" y1="17" x2="25" y2="19" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+              <rect width="28" height="28" rx="6" fill="#e03030" />
+              <path d="M8 8 L8 20 L14 20" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="20" cy="14" r="4" stroke="white" strokeWidth="2" fill="none" />
+              <line x1="23" y1="17" x2="25" y2="19" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
             </svg>
             <span>LIVESPORT</span>
           </a>
@@ -372,18 +580,22 @@ export default function App() {
 
   return (
     <MobileContext.Provider value={mobile}>
-      <div id="top" ref={ref} className={"ls-root" + (mobile ? " ls-mob" : "")} style={{ width: "100%", height: "100vh", overflow: "auto", position: "relative" }}>
-        <Nav />
-        <Comparison />
-        <Reviews />
-        <FAQ />
-        <Footer />
-        {showSticky && !mobile && (
-          <button className="ls-stickytop" onClick={() => ref.current?.scrollTo({ top: 0, behavior: "smooth" })}>
-            {Icon.arrowRight()} Back to top
-          </button>
-        )}
-      </div>
+      <ScrollRefContext.Provider value={ref}>
+        <div id="top" ref={ref} className={"ls-root" + (mobile ? " ls-mob" : "")} style={{ width: "100%", height: "100vh", overflow: "auto", position: "relative" }}>
+          <Nav />
+          <Comparison />
+          <Reviews />
+          <BestByCategory />
+          <BonusGuide />
+          <FAQ />
+          <Footer />
+          {showSticky && !mobile && (
+            <button className="ls-stickytop" onClick={() => ref.current?.scrollTo({ top: 0, behavior: "smooth" })}>
+              {Icon.arrowRight()} Back to top
+            </button>
+          )}
+        </div>
+      </ScrollRefContext.Provider>
     </MobileContext.Provider>
   );
 }
