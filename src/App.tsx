@@ -195,7 +195,7 @@ const Comparison = () => {
       <div className="ls-wrap">
         <div className="ls-section-head">
           <span className="ls-eyebrow">Top 10</span>
-          <h2 className="ls-h2">Quick Comparison of the Best Betting Sites</h2>
+          <h2 className="ls-h2">Top 10 Betting Sites in the UK</h2>
           <p className="ls-section-sub">
             Independent rankings, updated weekly. Every operator listed holds a current UK Gambling Commission licence.
           </p>
